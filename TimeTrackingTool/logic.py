@@ -1,5 +1,6 @@
 import time
 import enum
+from openpyxl import *
 
 class Timer:
   def __init__(self):
@@ -20,3 +21,46 @@ class State(enum.Enum):
     beginning = 1
     started = 2
     stopped = 3
+
+
+class Logging:
+    def __init__(self, path):
+        self.path = path
+        try:
+            # load excel file
+            self.wb = load_workbook(self.path)
+            self.sheet = self.wb.worksheets[0]
+            # determine first empty row
+            for cell in self.sheet["A"]:
+                if cell.value is None:
+                    self.starting_row = cell.row
+                    break
+            else:
+                self.starting_row = cell.row + 1
+        except:
+            # create excel file
+            self.wb = Workbook()
+            self.sheet = self.wb.worksheets[0]
+            self.sheet.title = "Time Tracker"
+            # write header in ecxel
+            self.write(1, 1, "Date")
+            self.write(1, 2, "Time")
+            self.write(1, 3, "Task")
+            # set first empty row to row number 2
+            self.starting_row = 2
+            # save changes
+            self.save()
+
+    def write(self, row, column, content):
+        self.sheet.cell(row=row, column=column).value = content
+
+    def read(self, row, column):
+        return self.sheet.cell(row=row, column=column).value
+
+    def save(self):
+        self.wb.save(self.path)
+
+    def write_new_entry(self, date, time, task):
+        self.write(self.starting_row, 1, date)
+        self.write(self.starting_row, 2, time)
+        self.write(self.starting_row, 3, task)

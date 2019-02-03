@@ -1,14 +1,17 @@
 from tkinter import *
 from logic import *
-
+from datetime import datetime
 
 class MyGuiClass:
-    def __init__(self, window):
+    def __init__(self, window, logger):
         # Window
         self.window = window
         window.geometry('150x100')
         window.title("Bastis Time Tracker")
-        window.iconbitmap('app_logo.ico')
+        window.iconbitmap('Graphicloads-Flat-Finance-Timer.ico')
+
+        # Data logger
+        self.logger = logger
 
         # Buttons
         # Start button
@@ -25,6 +28,7 @@ class MyGuiClass:
         # Time
         self.state = State.beginning
         self.main_timer = Timer()
+        self.fmt = '%H:%M:%S'
         self.starting_time = '%H:%M:%S'
         self.stop_time = '%H:%M:%S'
         self.task_time = '00:00:00'
@@ -50,10 +54,18 @@ class MyGuiClass:
             self.button_text.set("New")
             self.button_start.config(state=DISABLED)
             self.main_timer.restart()
+            self.starting_time = self.main_timer.get_time_hhmmss()
             self.state = State.started
             self.update_clock()
             self.update_buttons()
         elif self.state == State.started:
+            # create logging entry
+            date = datetime.now().strftime("%Y-%m-%d")
+            time = datetime.strptime(self.main_timer.get_time_hhmmss(), self.fmt) - datetime.strptime(self.starting_time, self.fmt)
+            task = self.inputBox.get()
+            self.logger.write_new_entry(date, time, task)
+            self.starting_time = self.main_timer.get_time_hhmmss()
+            # update GUI
             self.inputBox.delete(0, 'end')
             self.button_start.config(state=DISABLED)
             self.button_stop.config(state=DISABLED)
@@ -61,6 +73,15 @@ class MyGuiClass:
             return
 
     def button_stop_clicked(self):
+        # create logging entry
+        date = datetime.now().strftime("%Y-%m-%d")
+        time = datetime.strptime(self.main_timer.get_time_hhmmss(), self.fmt) - datetime.strptime(self.starting_time,
+                                                                                                  self.fmt)
+        task = self.inputBox.get()
+        self.logger.write_new_entry(date, time, task)
+        self.starting_time = self.main_timer.get_time_hhmmss()
+        self.logger.save()
+        # update GUI
         self.inputBox.delete(0, 'end')
         self.button_start.config(state=DISABLED)
         self.button_stop.config(state=DISABLED)
@@ -89,6 +110,3 @@ class MyGuiClass:
             self.window.after(1000, self.update_buttons)
         elif self.state == State.stopped:
             return
-
-window = Tk()
-toolGui = MyGuiClass(window)

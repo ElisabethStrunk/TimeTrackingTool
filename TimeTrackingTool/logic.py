@@ -1,6 +1,7 @@
 import time
 import enum
 from openpyxl import *
+from openpyxl.styles import Font
 
 class Timer:
   def __init__(self):
@@ -46,6 +47,9 @@ class Logging:
             self.write(1, 1, "Date")
             self.write(1, 2, "Time")
             self.write(1, 3, "Task")
+            # Make header bold
+            for cell in self.sheet["1:1"]:
+                cell.font = Font(bold=True)
             # set first empty row to row number 2
             self.starting_row = 2
             # save changes
@@ -64,3 +68,4 @@ class Logging:
         self.write(self.starting_row, 1, date)
         self.write(self.starting_row, 2, time)
         self.write(self.starting_row, 3, task)
+        self.starting_row += 1
